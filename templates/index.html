@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PhishGuard // THREAT INTEL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+
+<canvas id="hexCanvas"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<div id="bootScreen">
+  <div class="boot-content">
+    <div class="boot-logo">⬡</div>
+    <div class="boot-text" id="bootText"></div>
+    <div class="boot-bar-wrap"><div class="boot-bar" id="bootBar"></div></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-hex">⬡</div>
+    <div class="nav-brand">
+      <span class="brand-main">PHISH<span class="g">GUARD</span></span>
+      <span class="brand-sub">// THREAT INTELLIGENCE PLATFORM v2.0</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-pill"><span class="pill-dot"></span><span>SYS ONLINE</span></div>
+    <div class="nav-pill warn-pill" id="threatCount">0 THREATS</div>
+    <div class="clock mono" id="navClock">00:00:00</div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">[ ACTIVE THREAT SCANNER · PHISHGUARD ENGINE v2.0 ]</div>
+    <h1 class="hero-title">
+      <span class="t1">PHISHING</span><br/>
+      <span class="t2">DETECTION<span class="cursor-blink">_</span></span>
+    </h1>
+    <p class="hero-desc">
+      10-layer URL threat analysis &nbsp;·&nbsp; Entropy scoring &nbsp;·&nbsp; Typosquatting detection<br/>
+      Domain intelligence &nbsp;·&nbsp; Homoglyph attacks &nbsp;·&nbsp; Social engineering NLP
+    </p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="term-dots">
+          <span class="td r"></span><span class="td y"></span><span class="td gr"></span>
+        </div>
+        <div class="term-title mono">root@phishguard — threat-scanner</div>
+        <div class="term-badge">● ARMED</div>
+      </div>
+      <div class="term-body">
+        <div class="term-line mono">
+          <span class="tp-user">phishguard</span><span class="tp-at">@</span><span class="tp-host">intel</span><span class="tp-sep">:~$</span>
+          <span class="tp-cmd">&nbsp;scan --deep --verbose --url</span>
+        </div>
+        <div class="term-input-row">
+          <span class="ti-arrow">▶</span>
+          <input id="urlInput" class="url-field mono" type="text"
+            placeholder="https://target.domain/login?verify=account&token=x"
+            autocomplete="off" spellcheck="false"/>
+        </div>
+        <div class="term-actions">
+          <button class="btn-exec" id="scanBtn" onclick="runScan()">
+            <span>◈</span> EXECUTE SCAN
+          </button>
+          <button class="btn-ghost" onclick="loadDemo()">⚡ LOAD DEMO</button>
+          <button class="btn-ghost" onclick="clearAll()">✕ CLEAR</button>
+        </div>
+        <div class="term-hints mono">
+          <span class="dim-text">// Quick test →</span>
+          <span class="hint-chip" onclick="setDemo(0)">paypa1-verify.xyz</span>
+          <span class="hint-chip" onclick="setDemo(1)">amazon-account-suspended.click</span>
+          <span class="hint-chip" onclick="setDemo(2)">raw IP attack</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-n g" id="hs-total">0</div><div class="hstat-l">SCANS</div></div>
+    <div class="hstat-div"></div>
+    <div class="hstat"><div class="hstat-n danger" id="hs-threats">0</div><div class="hstat-l">THREATS</div></div>
+    <div class="hstat-div"></div>
+    <div class="hstat"><div class="hstat-n warn" id="hs-sus">0</div><div class="hstat-l">SUSPICIOUS</div></div>
+    <div class="hstat-div"></div>
+    <div class="hstat"><div class="hstat-n safe" id="hs-safe">0</div><div class="hstat-l">SAFE</div></div>
+  </div>
+</section>
+
+<div id="errorBox" class="err-box hidden">
+  <span class="err-icon">⚠</span>
+  <span class="err-label">// INPUT ERROR:</span>
+  <span id="errMsg"></span>
+</div>
+
+<section id="results" class="results hidden">
+  <div class="res-grid">
+
+    <div class="panel panel-verdict" id="verdictPanel">
+      <div class="panel-hdr">
+        <span class="panel-tag">THREAT VERDICT</span>
+        <span class="panel-id mono" id="scanId">—</span>
+      </div>
+      <div class="verd-core">
+        <div class="verd-icon" id="verdictIcon">◈</div>
+        <div class="verd-word" id="verdictWord">—</div>
+      </div>
+      <div class="verd-label" id="verdictLabel">—</div>
+      <div class="risk-score-block">
+        <div class="rsb-top">
+          <span class="mono dim-text">RISK SCORE</span>
+          <span class="rsb-num mono" id="scoreNum">0</span>
+          <span class="mono dim-text">/100</span>
+        </div>
+        <div class="rsb-track">
+          <div class="rsb-fill" id="scoreFill"></div>
+          <div class="rsb-labels">
+            <span style="left:20%">LOW</span>
+            <span style="left:45%">MED</span>
+            <span style="left:70%">HIGH</span>
+          </div>
+        </div>
+        <div class="conf-row">
+          <span class="mono dim-text">CONFIDENCE</span>
+          <div class="conf-track"><div class="conf-fill" id="confFill"></div></div>
+          <span class="mono g" id="confNum">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-domain">
+      <div class="panel-hdr"><span class="panel-tag">DOMAIN INTELLIGENCE</span></div>
+      <div class="dom-rows" id="domRows"></div>
+    </div>
+
+    <div class="panel panel-matrix">
+      <div class="panel-hdr"><span class="panel-tag">THREAT MATRIX</span></div>
+      <div class="matrix-tags" id="matrixTags"></div>
+      <div class="matrix-bars" id="matrixBars"></div>
+    </div>
+
+  </div>
+
+  <div class="panel panel-findings">
+    <div class="panel-hdr">
+      <span class="panel-tag">DETECTION FINDINGS</span>
+      <span class="mono dim-text" id="findCount">0 signals</span>
+    </div>
+    <div class="findings-list" id="findingsList"></div>
+  </div>
+
+  <div class="scan-meta mono" id="scanMeta"></div>
+</section>
+
+<section class="feed-section">
+  <div class="section-eye">// LIVE INTELLIGENCE FEED</div>
+  <h2 class="section-h">Recent Scan Log</h2>
+  <div class="feed-wrap">
+    <div class="feed-header">
+      <span>VERDICT</span><span>TARGET URL</span><span>RISK</span><span>TIME (UTC)</span>
+    </div>
+    <div id="feedRows"><div class="feed-empty mono">Awaiting scan data...</div></div>
+  </div>
+</section>
+
+<section class="mods-section">
+  <div class="section-eye">// DETECTION ARSENAL</div>
+  <h2 class="section-h">10-Layer Analysis Engine</h2>
+  <div class="mods-grid">
+    <div class="mod" style="--d:.0s"><div class="mod-n">01</div><div class="mod-ico">◑</div><h3>Structural Analysis</h3><p>Raw IPs, data URIs, non-standard ports, path traversal, URL length anomalies</p></div>
+    <div class="mod" style="--d:.05s"><div class="mod-n">02</div><div class="mod-ico">⬡</div><h3>Domain Intelligence</h3><p>Whitelist verification, high-risk TLDs, URL shortener abuse, subdomain nesting</p></div>
+    <div class="mod" style="--d:.1s"><div class="mod-n">03</div><div class="mod-ico">◈</div><h3>Typosquatting</h3><p>Levenshtein edit-distance against 7 major brands — catches 1–2 character deviations</p></div>
+    <div class="mod" style="--d:.15s"><div class="mod-n">04</div><div class="mod-ico">◎</div><h3>Entropy Scoring</h3><p>Shannon entropy flags DGA domains used by botnets and phishing-kit infrastructure</p></div>
+    <div class="mod" style="--d:.2s"><div class="mod-n">05</div><div class="mod-ico">◉</div><h3>Homoglyph Detection</h3><p>Visual character substitution attacks — 0→o, 1→l, @→a, vv→w spoofing</p></div>
+    <div class="mod" style="--d:.25s"><div class="mod-n">06</div><div class="mod-ico">◐</div><h3>Obfuscation Analysis</h3><p>Hex encoding abuse, Punycode IDN homograph, nested redirects, query entropy</p></div>
+    <div class="mod" style="--d:.3s"><div class="mod-n">07</div><div class="mod-ico">◑</div><h3>Social Engineering NLP</h3><p>40+ weighted phishing keywords — urgency, brand names, financial triggers</p></div>
+    <div class="mod" style="--d:.35s"><div class="mod-n">08</div><div class="mod-ico">◈</div><h3>Brand Impersonation</h3><p>20+ known typosquat variants, brand-in-subdomain spoofing detection</p></div>
+    <div class="mod" style="--d:.4s"><div class="mod-n">09</div><div class="mod-ico">◎</div><h3>Protocol Security</h3><p>TLS enforcement, cleartext HTTP, credential embedding via @ symbol in domain</p></div>
+    <div class="mod" style="--d:.45s"><div class="mod-n">10</div><div class="mod-ico">⬡</div><h3>Risk Scoring Engine</h3><p>Multi-signal aggregation into 0–100 score with four severity tiers and confidence</p></div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-logo">⬡ PHISH<span class="g">GUARD</span></div>
+  <div class="footer-line mono">Advanced URL Threat Intelligence · Python + Flask · Zero external APIs</div>
+  <div class="footer-fine mono">// For educational &amp; research purposes · Not a substitute for enterprise threat feeds</div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/matrix.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
