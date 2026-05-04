@@ -1,0 +1,17 @@
+# Virtual environment
+phishing/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary files
+.tmp/
+
+# OS files
+.DS_Store
+
+# Environment variables
+.env
